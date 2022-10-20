@@ -163,7 +163,7 @@ ifStmt:
 		ELSE (ifStmt | block)
 	)?;
 
-switchStmt: exprSwitchStmt | typeSwitchStmt;
+switchStmt: exprSwitchStmt | typeSwitchStmt; 
 
 exprSwitchStmt:
 	SWITCH (expression?

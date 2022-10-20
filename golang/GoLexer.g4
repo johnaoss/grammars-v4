@@ -85,6 +85,7 @@ PLUS_PLUS              : '++' -> mode(NLSEMI);
 MINUS_MINUS            : '--' -> mode(NLSEMI);
 DECLARE_ASSIGN         : ':=';
 ELLIPSIS               : '...';
+TILDE                  : '~';
 
 // Logical
 

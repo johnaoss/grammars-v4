@@ -36,6 +36,9 @@ func TypeAssertions() {
 	t, ok := i.(TwoS)
 	fmt.Println(t, ok)
 
+	i, ok = i.(interface{ Foo() string })
+	fmt.Println(i, ok)
+
 	//f = i.(float64) // panic
 	// fmt.Println(f)
 }

@@ -59,13 +59,23 @@ expressionList: expression (COMMA expression)*;
 
 typeDecl: TYPE (typeSpec | L_PAREN (typeSpec eos)* R_PAREN);
 
-typeSpec: IDENTIFIER ASSIGN? type_;
+typeSpec: IDENTIFIER typeParameters? type_ | identifierList ASSIGN TYPE;
+
+typeParameters: L_BRACKET typeParamList COMMA? R_BRACKET;
+
+typeParamList: typeParamDecl | typeParamDecl (COMMA typeParamDecl)+;
+
+typeParamDecl: identifierList typeConstraint;
+
+typeConstraint: typeElem;
+
+underlyingType: TILDE type_;
 
 // Function declarations
 
-functionDecl: FUNC IDENTIFIER (signature block?);
+functionDecl: FUNC IDENTIFIER typeParameters? signature block?;
 
-methodDecl: FUNC receiver IDENTIFIER ( signature block?);
+methodDecl: FUNC receiver IDENTIFIER signature block?;
 
 receiver: parameters;
 
@@ -198,9 +208,11 @@ rangeClause: (
 
 goStmt: GO expression;
 
-type_: typeName | typeLit | L_PAREN type_ R_PAREN;
+type_: typeName typeArgs? | typeLit | L_PAREN type_ R_PAREN ;
 
 typeName: qualifiedIdent | IDENTIFIER;
+
+typeArgs: L_BRACKET typeList COMMA? R_BRACKET;
 
 typeLit:
 	arrayType
@@ -220,9 +232,6 @@ elementType: type_;
 
 pointerType: STAR type_;
 
-interfaceType:
-	INTERFACE L_CURLY ((methodSpec | typeName) eos)* R_CURLY;
-
 sliceType: L_BRACKET R_BRACKET elementType;
 
 // It's possible to replace `type` with more restricted typeLit list and also pay attention to nil maps
@@ -230,9 +239,20 @@ mapType: MAP L_BRACKET type_ R_BRACKET elementType;
 
 channelType: (CHAN | CHAN RECEIVE | RECEIVE CHAN) elementType;
 
+methodName: IDENTIFIER;
+
+methodElem: methodName signature;
+
+typeTerm: type_ | underlyingType;
+
+typeElem: typeTerm (OR typeTerm)*;
+
+interfaceElem: methodElem | typeElem;
+
+interfaceType: INTERFACE L_CURLY (interfaceElem SEMI)* R_CURLY; 
+
 methodSpec:
-	IDENTIFIER parameters result
-	| IDENTIFIER parameters;
+	IDENTIFIER parameters result?;
 
 functionType: FUNC signature;
 
@@ -243,7 +263,9 @@ signature:
 result: parameters | type_;
 
 parameters:
-	L_PAREN (parameterDecl (COMMA parameterDecl)* COMMA?)? R_PAREN;
+	L_PAREN (parameterList COMMA?)? R_PAREN;
+
+parameterList: parameterDecl | parameterDecl (COMMA parameterDecl)+;
 
 parameterDecl: identifierList? ELLIPSIS? type_;
 
@@ -296,7 +318,7 @@ conversion: nonNamedType L_PAREN expression COMMA? R_PAREN;
 
 nonNamedType: typeLit | L_PAREN nonNamedType R_PAREN;
 
-operand: literal | operandName | L_PAREN expression R_PAREN;
+operand: literal | operandName typeArgs? | L_PAREN expression R_PAREN;
 
 literal: basicLit | compositeLit | functionLit;
 
@@ -326,7 +348,7 @@ literalType:
 	| L_BRACKET ELLIPSIS R_BRACKET elementType
 	| sliceType
 	| mapType
-	| typeName;
+	| typeName typeArgs?;
 
 literalValue: L_CURLY (elementList COMMA?)? R_CURLY;
 
@@ -347,7 +369,7 @@ fieldDecl: (
 
 string_: RAW_STRING_LIT | INTERPRETED_STRING_LIT;
 
-embeddedField: STAR? typeName;
+embeddedField: STAR? typeName typeArgs?;
 
 functionLit: FUNC signature block; // function
 
